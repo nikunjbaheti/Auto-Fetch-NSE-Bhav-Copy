@@ -31,7 +31,7 @@ def download_and_extract_bhavcopy():
 # Function to push updated CSV to GitHub
 def push_to_github(updated_csv, local_file_path):
     # Replace with your GitHub token and repository information
-    github_token = "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"
+    github_token = "11321332132121131232313131313132312"
     repository_name = "BSE-BhavCopy"
     file_path = "https://github.com/nikunjbaheti/BSE-BhavCopy.csv"
 
