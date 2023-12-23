@@ -1,0 +1,52 @@
+function fetchData() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetName = "NSE BhavCopy";
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  
+  // If the sheet doesn't exist, create a new sheet
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(sheetName);
+  }
+  
+  // Get the current date in DDMMYYYY format
+  var currentDate = Utilities.formatDate(new Date(), 'IST', 'ddMMyyyy');
+  
+  try {
+    // Construct the Bhavcopy URL for the current date
+    var url = "https://archives.nseindia.com/products/content/sec_bhavdata_full_" + currentDate + ".csv";
+    
+    // Fetch CSV data for the current date
+    var content = UrlFetchApp.fetch(url).getContentText();
+    
+    // Parse CSV data
+    var csvDataArray = Utilities.parseCsv(content);
+    
+    // Clear existing data and paste new data
+    sheet.clear();
+    sheet.getRange(1, 1, csvDataArray.length, csvDataArray[0].length).setValues(csvDataArray);
+    
+    Logger.log("Data fetched successfully for " + currentDate);
+  } catch (error) {
+    Logger.log("Error fetching data for " + currentDate + ": " + error.toString());
+    
+    // If there is an error fetching the CSV for the current date, try the past 10 days
+    for (var i = 1; i <= 10; i++) {
+      var pastDate = Utilities.formatDate(new Date(new Date().getTime() - i * 24 * 60 * 60 * 1000), 'IST', 'ddMMyyyy');
+      var pastUrl = "https://archives.nseindia.com/products/content/sec_bhavdata_full_" + pastDate + ".csv";
+      
+      try {
+        var pastContent = UrlFetchApp.fetch(pastUrl).getContentText();
+        var pastCsvDataArray = Utilities.parseCsv(pastContent);
+        
+        // Clear existing data and paste new data
+        sheet.clear();
+        sheet.getRange(1, 1, pastCsvDataArray.length, pastCsvDataArray[0].length).setValues(pastCsvDataArray);
+        
+        Logger.log("Data fetched successfully for " + pastDate);
+        break; // Exit the loop if data is found for any past date
+      } catch (pastError) {
+        Logger.log("Error fetching data for " + pastDate + ": " + pastError.toString());
+      }
+    }
+  }
+}
